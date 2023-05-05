@@ -1,0 +1,115 @@
+-- Creación de la base de datos
+CREATE DATABASE TeLoVendo1;
+
+-- Selección de la base de datos
+USE TeLoVendo1;
+
+-- Creación de la tabla Proveedor
+CREATE TABLE Proveedor (
+  idProveedor INT PRIMARY KEY AUTO_INCREMENT,
+  nombreRepresentante VARCHAR(50) NOT NULL,
+  nombreCorporativo VARCHAR(50) NOT NULL,
+  telefono1 VARCHAR(15) NOT NULL,
+  telefono2 VARCHAR(15) NOT NULL,
+  contactoTelefono VARCHAR(50) NOT NULL,
+  categoria VARCHAR(50) NOT NULL,
+  correoElectronico VARCHAR(50) NOT NULL
+);
+
+-- Inserción de datos en la tabla Proveedor
+INSERT INTO Proveedor (nombreRepresentante, nombreCorporativo, telefono1, telefono2, contactoTelefono, categoria, correoElectronico)
+VALUES
+  ('Juan Pérez', 'Electronics Corp.', '123456789','226897004', 'María', 'Electrónica', 'juan@electronics.com'),
+  ('Luisa Martínez', 'Tech Inc.', '987654321','228697004', 'Pedro', 'Tecnología', 'luisa@tech.com'),
+  ('Pedro García', 'Networks S.A.', '555123456','226897006', 'Andrea', 'Redes', 'pedro@networks.com'),
+  ('María Torres', 'Digital Devices', '789123456','776897004', 'Juan', 'Dispositivos digitales', 'maria@devices.com'),
+  ('Andrés López', 'Tech Plus', '159753456','226467004','Luis', 'Tecnología', 'andres@techplus.com');
+
+-- Creación de la tabla Producto
+CREATE TABLE Producto (
+  idProducto INT PRIMARY KEY AUTO_INCREMENT,
+  nombre VARCHAR(50) NOT NULL,
+  precio DECIMAL(10,2) NOT NULL,
+  categoria VARCHAR(50) NOT NULL,
+  color VARCHAR(50) NOT NULL,
+  stock INT NOT NULL,
+  idProveedor INT NOT NULL,
+  FOREIGN KEY (idProveedor) REFERENCES proveedor(idProveedor )
+);
+
+-- Inserción de datos en la tabla Producto
+INSERT INTO Producto (nombre, precio, categoria, color, stock, idProveedor)
+VALUES
+  ('Laptop HP', 1200.00, 'Computación', 'Negro', 20, 1),
+  ('Audífonos Sony', 100.00, 'Electrónica', 'Rojo', 15, 2),
+  ('Smartphone Samsung', 800.00, 'Telefonía', 'Azul', 34, 1),
+  ('Televisor LG', 1500.00, 'Televisores', 'Gris', 10, 1),
+  ('Cámara Canon', 500.00, 'Fotografía', 'Negro', 5 ,2),
+  ('Tablet Lenovo', 350.00, 'Computación', 'Blanco', 20, 3),
+  ('Consola Xbox', 700.00, 'Videojuegos', 'Verde', 18, 4),
+  ('Impresora HP', 250.00, 'Computación', 'Blanco', 15, 1),
+  ('Smartwatch Apple', 400.00, 'Electrónica', 'Plateado',8, 3),
+  ('Altavoz JBL', 80.00, 'Audio', 'Negro', 17, 2);
+
+-- Creación de la tabla Cliente
+CREATE TABLE Cliente (
+  idCliente INT PRIMARY KEY AUTO_INCREMENT,
+  nombre VARCHAR(50) NOT NULL,
+  apellido VARCHAR(50) NOT NULL,
+  direccion VARCHAR(50) NOT NULL,
+  idProducto INT NOT NULL,
+  FOREIGN KEY (idProducto) REFERENCES Producto(idProducto)
+);
+
+-- Inserción de datos en la tabla Cliente
+INSERT INTO Cliente (nombre, apellido, direccion, idProducto)
+VALUES
+  ('María', 'González', 'Calle 12 #34A6', 5),
+  ('Juan', 'Pérez', 'Avenida 34 #568', 6),
+  ('Luisa', 'Martínez', 'Carrera 7 #892',4),
+  ('Pedro', 'García', 'Calle 45 #237',3),
+  ('Andrés', 'López', 'Carrera 23 #457',10);
+
+-- Consultas SQL
+-- Cuál es la categoría de productos que más se repite
+SELECT categoria, COUNT(*) 
+FROM Producto
+GROUP BY categoria
+LIMIT 1;
+
+
+-- Cuáles son los productos con mayor stock
+SELECT nombre, stock
+FROM Producto
+ORDER BY stock DESC
+LIMIT 5;
+
+-- Qué color de producto es más común en nuestra tienda
+SELECT color, COUNT(*) AS cantidad
+FROM Producto
+GROUP BY color
+ORDER BY cantidad DESC
+LIMIT 1;
+
+
+-- Cual o cuales son los proveedores con menor stock de productos
+SELECT Proveedor.nombreCorporativo, SUM(Producto.stock) AS total_stock
+FROM Proveedor
+JOIN Producto ON Proveedor.idProveedor = Producto.idProveedor
+GROUP BY Proveedor.idProveedor
+ORDER BY total_stock ASC
+LIMIT 1;
+
+-- Cambio de la categoría de productos más popular por 'Electrónica y computación'
+UPDATE Producto
+SET categoria = 'Electrónica y computación'
+WHERE idProducto IN (
+  SELECT idProducto
+  FROM (
+    SELECT idProducto, COUNT(*) AS cantidad
+    FROM Producto
+    GROUP BY idProducto
+    ORDER BY cantidad DESC
+    LIMIT 1
+  ) AS ProductosPopulares
+);
